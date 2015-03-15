@@ -308,11 +308,15 @@ class syntax_plugin_mantis extends DokuWiki_Syntax_Plugin {
 
 	function render($mode, &$renderer, $data) {
 		if ($mode == 'xhtml') {
-			if (is_numeric($data[0])) {
+			if (is_numeric($data[0])) { // we have ~~issue~~ format
 				$server = $this->getConf('mantis_server');
 				$server = substr($server,0,stripos($server,'api'));
 				$renderer->externallink( $server . 'view.php?id=' . $data[0], $data[0] );
-			} else {
+			} elseif ((strtolower($data[1])=='bug' or strtolower($data[1])=='issue') and is_numeric($data[2])) { // we have {{Mantis>bug:}} format
+				$server = $this->getConf('mantis_server');
+				$server = substr($server,0,stripos($server,'api'));
+				$renderer->externallink( $server . 'view.php?id=' . $data[2], $data[2] );
+			} else { // List project issues
 				$renderer->doc .= $this->replace($data);
 			}
 			return true;
