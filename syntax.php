@@ -1,9 +1,13 @@
 <?php
 /**
- * Plugin: Dockuwiki MantisBT Integration
+ * MantisBT Plugin: Dockuwiki MantisBT Integration from Christoph Lang
+ * MantisBT Plugin: Hyperlinks references to Mantis Issues from Victor Boctor
  *
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author     Christoph Lang <calbity@gmx.de>
+ *   Christoph is the creator of the original code this plugin is based on
+ * @author     Victor Boctor (http://www.futureware.biz)
+ *   Victor implemented a previous version which permitted linking to MantisBT. I merged his code.
  * @author     Joe Bordes <joe@tsolucio.com>
  */
 
@@ -26,12 +30,12 @@ class syntax_plugin_mantis extends DokuWiki_Syntax_Plugin {
 
 	function getInfo() {
 		return array(
-			'author'  => 'Christoph Lang',
-			'email'   => 'calbity@gmx.de',
-			'date'    => '2010-04-05',
-			'name'    => 'Mantis Bug Tracker',
-			'desc'    => 'Show Bugs from Mantis',
-			'url'     => 'http://www.sdzecom.de'
+			'author'  => 'Joe Bordes',
+			'email'   => 'joe@tsolucio.com',
+			'date'    => '2015-03-15',
+			'name'    => 'Mantis Bug Tracker and Issues Plugin',
+			'desc'    => 'Show and Links to Bugs from MantisBT',
+			'url'     => 'http://www.tsolucio.com'
 			);
 	}
 
@@ -281,22 +285,34 @@ class syntax_plugin_mantis extends DokuWiki_Syntax_Plugin {
 	function connectTo($mode) {
 		//$this->Lexer->addSpecialPattern('\[\[Mantis\:.*?\]\]', $mode, 'plugin_mantis');
 		$this->Lexer->addSpecialPattern('{{Mantis>.*?}}', $mode, 'plugin_mantis');
+		$this->Lexer->addSpecialPattern('~~issue:[0-9]+~~', $mode, 'plugin_mantis');
 	}
 
 	function getType() { return 'substition'; }
 
+	function getPType() { return 'normal'; }
+
 	function getSort() { return 215; }
 
 	function handle($match, $state, $pos, &$handler) {
-		$match = substr($match,2,-2);
-		$match = str_replace(":",">",$match);
-		$arrData = explode(">",$match);
+		if (stripos($match,'issue:')) { // we have ~~issue~~ format
+			$match = substr( $match, 8, -2 ); // strip "~~issue:" from start and "~~" from end
+			$arrData = array( strtolower( $match ) );
+		} else {
+			$match = substr($match,2,-2);
+			$match = str_replace(":",">",$match);
+			$arrData = explode(">",$match);
+		}
 		return $arrData;
 	}
 
 	function render($mode, &$renderer, $data) {
 		if ($mode == 'xhtml') {
-			$renderer->doc .= $this->replace($data);
+			if (is_numeric($data[0])
+				$server = $this->getConf('mantis_server');
+				$renderer->externallink( $server . 'view.php?id=' . $data[0], $data[0] );
+			else
+				$renderer->doc .= $this->replace($data);
 			return true;
 		}
 		return false;
