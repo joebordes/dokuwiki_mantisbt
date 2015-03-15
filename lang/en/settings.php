@@ -1,12 +1,12 @@
 <?php
-$lang['mantis_server'] 			= 'The adress of the Mantis server.';
-$lang['mantis_user']        = 'A username for Mantis.';
-$lang['mantis_password']    = 'The passwort for the Mantis user.';
+$lang['mantis_server']		= 'The address of the MantisBT server.';
+$lang['mantis_user']        = 'A username to access MantisBT.';
+$lang['mantis_password']    = 'The password for the MantisBT user.';
 $lang['mantis_namespace']   = 'The namespace for the SOAP-Service. Do not edit unless you know what you are doing!';
 $lang['mantis_refresh']     = 'The duration for the cache. When this amount of minutes is gone the data is refetched from mantis.';
 $lang['mantis_limit']       = 'The number of issues that should be presented on the page.';
 
-$lang['mantis_issue_type'] 				= 'Please select the status, which the issues should at least have. <b>Option is not yet implemented.</b>';
+$lang['mantis_issue_type'] 	= 'Please select the status which the issues should at least have. <b>Option is not yet implemented.</b>';
 $lang['mantis_issue_type_o_0']     = 'All';
 $lang['mantis_issue_type_o_1']     = 'new';
 $lang['mantis_issue_type_o_2']     = 'feedback';
