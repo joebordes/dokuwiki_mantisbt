@@ -310,6 +310,7 @@ class syntax_plugin_mantis extends DokuWiki_Syntax_Plugin {
 		if ($mode == 'xhtml') {
 			if (is_numeric($data[0])) {
 				$server = $this->getConf('mantis_server');
+				$server = substr($server,0,stripos($server,'api'));
 				$renderer->externallink( $server . 'view.php?id=' . $data[0], $data[0] );
 			} else {
 				$renderer->doc .= $this->replace($data);
