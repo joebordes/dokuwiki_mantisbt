@@ -9,7 +9,9 @@ The idea is to pickup where they seem to have left off and continue their work
 
 ## Configuration
 
-Go to the extension configuration settings and set your url, user and password.
+What I did was install the MantisBT integration from 2010 and then overwrite the files with the ones in this project. I know I should learn to distribute it as a plugin but I haven't gotten around to that yet.
+
+Once installed and the files overwritten, go to the extension's configuration settings and set your url, user and password.
 
 ## Syntax
 
