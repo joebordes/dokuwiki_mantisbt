@@ -1,6 +1,6 @@
 <?php
 /*
-$Id: nusoapmime.php,v 1.12 2007/04/17 16:34:03 snichol Exp $
+$Id: nusoapmime.php,v 1.13 2010/04/26 20:15:08 snichol Exp $
 
 NuSOAP - Web Services Toolkit for PHP
 
@@ -48,7 +48,7 @@ require_once('Mail/mimePart.php');
 *
 * @author   Scott Nichol <snichol@users.sourceforge.net>
 * @author	Thanks to Guillaume and Henning Reich for posting great attachment code to the mail list
-* @version  $Id: nusoapmime.php,v 1.12 2007/04/17 16:34:03 snichol Exp $
+* @version  $Id: nusoapmime.php,v 1.13 2010/04/26 20:15:08 snichol Exp $
 * @access   public
 */
 class nusoap_client_mime extends nusoap_client {
@@ -133,7 +133,7 @@ class nusoap_client_mime extends nusoap_client {
 	function getHTTPBody($soapmsg) {
 		if (count($this->requestAttachments) > 0) {
 			$params['content_type'] = 'multipart/related; type="text/xml"';
-			$mimeMessage =& new Mail_mimePart('', $params);
+			$mimeMessage = new Mail_mimePart('', $params);
 			unset($params);
 
 			$params['content_type'] = 'text/xml';
@@ -278,7 +278,7 @@ if (!extension_loaded('soap')) {
 *
 * @author   Scott Nichol <snichol@users.sourceforge.net>
 * @author	Thanks to Guillaume and Henning Reich for posting great attachment code to the mail list
-* @version  $Id: nusoapmime.php,v 1.12 2007/04/17 16:34:03 snichol Exp $
+* @version  $Id: nusoapmime.php,v 1.13 2010/04/26 20:15:08 snichol Exp $
 * @access   public
 */
 class nusoap_server_mime extends nusoap_server {
@@ -299,15 +299,6 @@ class nusoap_server_mime extends nusoap_server {
 	 * @access private
 	 */
 	var $mimeContentType;
-	
-	
-	// BSP 
-	var $encoding  = 'base64';
-	function setEncoding($enc)
-	{
-	   $this->encoding = $enc;
-  }
-	
 	
 	/**
 	* adds a MIME attachment to the current response.
@@ -372,12 +363,11 @@ class nusoap_server_mime extends nusoap_server {
 	function getHTTPBody($soapmsg) {
 		if (count($this->responseAttachments) > 0) {
 			$params['content_type'] = 'multipart/related; type="text/xml"';
-			$mimeMessage =& new Mail_mimePart('', $params);
+			$mimeMessage = new Mail_mimePart('', $params);
 			unset($params);
 
 			$params['content_type'] = 'text/xml';
-			//$params['encoding']     = '8bit';
-			$params['encoding'] = $this->encoding;  // BSP
+			$params['encoding']     = '8bit';
 			$params['charset']      = $this->soap_defencoding;
 			$mimeMessage->addSubpart($soapmsg, $params);
 			
@@ -385,8 +375,7 @@ class nusoap_server_mime extends nusoap_server {
 				unset($params);
 
 				$params['content_type'] = $att['contenttype'];
-				//$params['encoding']     = 'base64';
-			  $params['encoding'] = $this->encoding;  // BSP
+				$params['encoding']     = 'base64';
 				$params['disposition']  = 'attachment';
 				$params['dfilename']    = $att['filename'];
 				$params['cid']          = $att['cid'];

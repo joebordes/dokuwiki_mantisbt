@@ -9,7 +9,7 @@
 *
 * @author   Dietrich Ayala <dietrich@ganx4.com>
 * @author   Scott Nichol <snichol@users.sourceforge.net>
-* @version  $Id: class.soap_parser.php,v 1.40 2007/04/17 16:34:03 snichol Exp $
+* @version  $Id: class.soap_parser.php,v 1.42 2010/04/26 20:15:08 snichol Exp $
 * @access   public
 */
 class nusoap_parser extends nusoap_base {
@@ -57,8 +57,8 @@ class nusoap_parser extends nusoap_base {
 	* @param    string $decode_utf8 whether to decode UTF-8 to ISO-8859-1
 	* @access   public
 	*/
-	function nusoap_parser($xml,$encoding='UTF-8',$method='',$decode_utf8=true){
-		parent::nusoap_base();
+	function __construct($xml,$encoding='UTF-8',$method='',$decode_utf8=true){
+		parent::__construct();
 		$this->xml = $xml;
 		$this->xml_encoding = $encoding;
 		$this->method = $method;
@@ -112,6 +112,8 @@ class nusoap_parser extends nusoap_base {
 				$this->debug("XML payload:\n" . $xml);
 				$this->setError($err);
 			} else {
+				$this->debug('in nusoap_parser ctor, message:');
+				$this->appendDebug($this->varDump($this->message));
 				$this->debug('parsed successfully, found root struct: '.$this->root_struct.' of name '.$this->root_struct_name);
 				// get final value
 				$this->soapresponse = $this->message[$this->root_struct]['result'];
@@ -135,6 +137,7 @@ class nusoap_parser extends nusoap_base {
 				}
 			}
 			xml_parser_free($this->parser);
+			unset($this->parser);
 		} else {
 			$this->debug('xml was empty, didn\'t parse!');
 			$this->setError('xml was empty, didn\'t parse!');
@@ -177,12 +180,12 @@ class nusoap_parser extends nusoap_base {
 			$name = substr(strstr($name,':'),1);
 		}
 		// set status
-		if($name == 'Envelope'){
+		if ($name == 'Envelope' && $this->status == '') {
 			$this->status = 'envelope';
-		} elseif($name == 'Header' && $this->status = 'envelope'){
+		} elseif ($name == 'Header' && $this->status == 'envelope') {
 			$this->root_header = $pos;
 			$this->status = 'header';
-		} elseif($name == 'Body' && $this->status = 'envelope'){
+		} elseif ($name == 'Body' && $this->status == 'envelope'){
 			$this->status = 'body';
 			$this->body_position = $pos;
 		// set method
@@ -207,7 +210,7 @@ class nusoap_parser extends nusoap_base {
 			$key_localpart = $this->getLocalPart($key);
 			// if ns declarations, add to class level array of valid namespaces
             if($key_prefix == 'xmlns'){
-				if(ereg('^http://www.w3.org/[0-9]{4}/XMLSchema$',$value)){
+				if(preg_match('/^http:\/\/www.w3.org\/[0-9]{4}\/XMLSchema$/',$value)){
 					$this->XMLSchemaVersion = $value;
 					$this->namespaces['xsd'] = $this->XMLSchemaVersion;
 					$this->namespaces['xsi'] = $this->XMLSchemaVersion.'-instance';
@@ -218,20 +221,20 @@ class nusoap_parser extends nusoap_base {
 					$this->methodNamespace = $value;
 				}
 			// if it's a type declaration, set type
-        } elseif($key_localpart == 'type'){
+            } elseif($key_localpart == 'type'){
         		if (isset($this->message[$pos]['type']) && $this->message[$pos]['type'] == 'array') {
         			// do nothing: already processed arrayType
         		} else {
-	            	$value_prefix = $this->getPrefix($value);
-	                $value_localpart = $this->getLocalPart($value);
-					$this->message[$pos]['type'] = $value_localpart;
-					$this->message[$pos]['typePrefix'] = $value_prefix;
-	                if(isset($this->namespaces[$value_prefix])){
-	                	$this->message[$pos]['type_namespace'] = $this->namespaces[$value_prefix];
-	                } else if(isset($attrs['xmlns:'.$value_prefix])) {
-						$this->message[$pos]['type_namespace'] = $attrs['xmlns:'.$value_prefix];
-	                }
-					// should do something here with the namespace of specified type?
+            	$value_prefix = $this->getPrefix($value);
+                $value_localpart = $this->getLocalPart($value);
+				$this->message[$pos]['type'] = $value_localpart;
+				$this->message[$pos]['typePrefix'] = $value_prefix;
+                if(isset($this->namespaces[$value_prefix])){
+                	$this->message[$pos]['type_namespace'] = $this->namespaces[$value_prefix];
+                } else if(isset($attrs['xmlns:'.$value_prefix])) {
+					$this->message[$pos]['type_namespace'] = $attrs['xmlns:'.$value_prefix];
+                }
+				// should do something here with the namespace of specified type?
 				}
 			} elseif($key_localpart == 'arrayType'){
 				$this->message[$pos]['type'] = 'array';
@@ -243,8 +246,8 @@ class nusoap_parser extends nusoap_base {
 				[5]    length    ::=    nextDimension* Digit+
 				[6]    nextDimension    ::=    Digit+ ','
 				*/
-				$expr = '([A-Za-z0-9_]+):([A-Za-z]+[A-Za-z0-9_]+)\[([0-9]+),?([0-9]*)\]';
-				if(ereg($expr,$value,$regs)){
+				$expr = '/([A-Za-z0-9_]+):([A-Za-z]+[A-Za-z0-9_]+)\[([0-9]+),?([0-9]*)\]/';
+				if(preg_match($expr,$value,$regs)){
 					$this->message[$pos]['typePrefix'] = $regs[1];
 					$this->message[$pos]['arrayTypePrefix'] = $regs[1];
 	                if (isset($this->namespaces[$regs[1]])) {
@@ -390,12 +393,14 @@ class nusoap_parser extends nusoap_base {
 		if($pos == $this->root_struct){
 			$this->status = 'body';
 			$this->root_struct_namespace = $this->message[$pos]['namespace'];
-		} elseif($name == 'Body'){
+		} elseif ($pos == $this->root_header) {
 			$this->status = 'envelope';
-		 } elseif($name == 'Header'){
+		} elseif ($name == 'Body' && $this->status == 'body') {
 			$this->status = 'envelope';
-		} elseif($name == 'Envelope'){
-			//
+		} elseif ($name == 'Header' && $this->status == 'header') { // will never happen
+			$this->status = 'envelope';
+		} elseif ($name == 'Envelope' && $this->status == 'envelope') {
+			$this->status = '';
 		}
 		// set parent back to my parent
 		$this->parent = $this->message[$pos]['parent'];
