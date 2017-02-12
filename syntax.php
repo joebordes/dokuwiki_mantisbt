@@ -294,7 +294,7 @@ class syntax_plugin_mantis extends DokuWiki_Syntax_Plugin {
 
 	function getSort() { return 215; }
 
-	function handle($match, $state, $pos, &$handler) {
+	function handle($match, $state, $pos, Doku_Handler $handler) {
 		if (stripos($match,'issue:')) { // we have ~~issue~~ format
 			$match = substr( $match, 8, -2 ); // strip "~~issue:" from start and "~~" from end
 			$arrData = array( strtolower( $match ) );
@@ -306,7 +306,7 @@ class syntax_plugin_mantis extends DokuWiki_Syntax_Plugin {
 		return $arrData;
 	}
 
-	function render($mode, &$renderer, $data) {
+	function render($mode, Doku_Renderer $renderer, $data) {
 		if ($mode == 'xhtml') {
 			if (is_numeric($data[0])) { // we have ~~issue~~ format
 				$server = $this->getConf('mantis_server');
